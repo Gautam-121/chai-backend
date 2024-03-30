@@ -51,7 +51,7 @@ userSchema.methods.isPasswordCompare = async function(password){
 userSchema.method.generateAccessToken = function(){
     return jwt.sign(
         {
-            _id: this.id,
+            _id: this._id,
             email: this.email,
             username: this.userSchema
         },
@@ -65,7 +65,7 @@ userSchema.method.generateAccessToken = function(){
 userSchema.method.generateRefreshToken = function(){
     return jwt.sign(
         {
-            _id: this.id,
+            _id: this._id,
         },
         process.env.REFRESH_TOKEN_SECRET,
         {

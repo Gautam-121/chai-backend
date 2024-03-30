@@ -8,6 +8,7 @@ import {
     isValidLengthUsername,
     isValidPassword
 } from "../utils/validation.js"
+import {cookieOptions} from "../constants.js"
 
 export const registerUser = asyncHandler(async(req,res,next)=>{
 
@@ -141,4 +142,73 @@ export const registerUser = asyncHandler(async(req,res,next)=>{
             "User register Successfully"
         )
     )
+})
+
+export const loginUser = asyncHandler(async(req,res,next)=>{
+
+    // take inpurt from frontend username or email and password
+    // check user exist with the username or email
+    // compare the password with dbPassword using bcrypt.comapre
+    // generate a access and refreshToken and store refreshToken in db
+    // send respond to the user
+
+    const {email , password} = req.body
+
+    if(!email || !password){
+        return next(
+            new ApiError(
+                "Email and Password is Required",
+                400
+            )
+        )
+    }
+
+    const user = await User.findOne({email})
+
+    if(!user){
+        return next(
+            new ApiError(
+                "User not found",
+                404
+            )
+        )
+    }
+
+    const isPasswordMatched = await user.isPasswordCompare(user.password)
+
+    if(isPasswordMatched){
+        return next(
+            new ApiError(
+                "Invalid user credential",
+                401
+            )
+        )
+    }
+
+    sendToken(user , 200 , res)
+})
+
+export const logOut = asyncHandler( async(req,res,next)=>{
+
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {refreshToken: undefined}
+        },
+        {
+            new: true
+        }
+    )
+
+    return res.status(200)
+    .clearCookie("accessToken" , cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "User logout Successfull"
+        )
+    )
+
 })
