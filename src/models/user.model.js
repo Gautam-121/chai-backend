@@ -33,7 +33,11 @@ const userSchema = new mongoose.Schema({
     refreshToken:{
         type: String,
         default: undefined
-    }
+    },
+
+    otp : String,
+    otpExpire: String
+
 },{timestamps: true})
 
 userSchema.pre("save", async function(next){
@@ -72,6 +76,17 @@ userSchema.method.generateRefreshToken = function(){
             expiresIn: process.env.REFRESH_TOKEN_EXPIRE
         }
     )
+}
+
+userSchema.method.generateSixDigitOtp = function(){
+
+    const randomNumber = "0123456789"
+    let otp = ""
+    let len = 6
+
+    for(let i=0 ; i<len; i++){
+        otp+= randomNumber[Math.floor(Math.random() * randomNumber.length)];
+    }
 }
 
 export default User = mongoose.model("User", userSchema)

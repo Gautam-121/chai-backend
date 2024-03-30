@@ -9,6 +9,8 @@ import {
     isValidPassword
 } from "../utils/validation.js"
 import {cookieOptions} from "../constants.js"
+import jwt from "jsonwebtoken"
+import sendToken from "../utils/sendToken.js"
 
 export const registerUser = asyncHandler(async(req,res,next)=>{
 
@@ -210,5 +212,92 @@ export const logOut = asyncHandler( async(req,res,next)=>{
             "User logout Successfull"
         )
     )
+
+})
+
+export const refreshToken = asyncHandler(async(req,res,next)=>{
+
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body
+
+    if(!incomingRefreshToken){
+        return next(
+            new ApiError(
+                "Unauthorized request",
+                401
+            )
+        )
+    }
+
+    try {
+
+        const decodedToken = jwt.verify(incomingRefreshToken , process.env.REFRESH_TOKEN_SECRET)
+    
+        if(!decodedToken){
+            return next(
+                "Invalid refresh token or Refresh token has been expired",
+                 401
+            )
+        }
+    
+        const user = await User.findById(decodedToken._id)
+    
+        if(!user){
+            return next(
+                new ApiError(
+                    "User not found",
+                    404
+                )
+            )
+        }
+    
+        if(user.refreshToken != incomingRefreshToken){
+            return next(
+                new ApiError(
+                    "Refresh token expired or used",
+                    401
+                )
+            )
+        }
+
+        sendToken(user, 200 , res)
+
+    } catch (error) {
+        return next(
+            new ApiError(
+                "Refresh token expired or used",
+                401
+            )
+        )
+    }
+   
+})
+
+export const forgotPassword = asyncHandler(async(req,res,next)=>{
+    // take email or username from frontend
+    // find user exist with that username or email
+    // set a configration of email and send to otp based email on there email
+    // before sending email update the database ootpResetToken , otpResetExpire
+
+    const {email} = req.body
+
+    if(!email){
+        return next(
+            new ApiError(
+                "Email is required",
+               400 
+            )
+        )
+    }
+
+    const user = await User.findOne({email})
+
+    if(!user){
+        return next(
+            new ApiError(
+                "User not found",
+                404
+            )
+        )
+    }
 
 })

@@ -1,5 +1,5 @@
 import express from "express"
-import { logOut, loginUser, registerUser } from "../controllers/user.controller.js"
+import { logOut, loginUser, refreshToken, registerUser } from "../controllers/user.controller.js"
 import upload from "../middlewares/multer.middleware.js"
 import { verifyJwt } from "../middlewares/auth.middleware.js"
 const router = express.Router()
@@ -21,6 +21,8 @@ router.route("/register").post( upload.fields(
 router.route("/login").post(loginUser)
 
 router.route("/logout").post( verifyJwt ,  logOut)
+
+router.route("/refresh-token").post(refreshToken)
 
 
 
